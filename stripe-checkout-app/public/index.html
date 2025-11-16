@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シンプルなECサイト</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>My Coffee Store</h1>
+    </header>
+    <main id="product-list">
+        <!-- 商品はJavaScriptによってここに挿入されます -->
+    </main>
+    <footer>
+        <p>&copy; 2025 My Coffee Store</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const productList = document.getElementById('product-list');
+
+            // サーバーから商品情報を取得
+            fetch('/api/products')
+                .then(response => response.json())
+                .then(products => {
+                    products.forEach(product => {
+                        const productCard = document.createElement('div');
+                        productCard.className = 'product-card';
+                        productCard.innerHTML = `
+                            <img src="${product.image}" alt="${product.name}">
+                            <div class="product-info">
+                                <h2>${product.name}</h2>
+                                <p class="description">${product.description}</p>
+                                <p class="price">¥${product.price.toLocaleString()}</p>
+                                <button class="buy-button" data-product-id="${product.id}">購入する</button>
+                            </div>
+                        `;
+                        productList.appendChild(productCard);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching products:', error);
+                    productList.innerHTML = '<p>商品の読み込みに失敗しました。</p>';
+                });
+
+            // 購入ボタンのクリックイベント
+            productList.addEventListener('click', async (event) => {
+                if (event.target.classList.contains('buy-button')) {
+                    const button = event.target;
+                    const productId = button.dataset.productId;
+                    
+                    // ボタンをローディング状態にする
+                    button.disabled = true;
+                    button.textContent = '処理中...';
+
+                    try {
+                        const response = await fetch('/create-checkout-session', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ productId: productId }),
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+
+                        const session = await response.json();
+                        // Stripeの決済ページにリダイレクト
+                        window.location.href = session.url;
+
+                    } catch (error) {
+                        console.error('Error creating checkout session:', error);
+                        alert('決済ページの作成に失敗しました。');
+                        // エラーが発生したらボタンを元に戻す
+                        button.disabled = false;
+                        button.textContent = '購入する';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
