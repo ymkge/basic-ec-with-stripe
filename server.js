@@ -9,17 +9,17 @@ const app = express();
 const products = [
     {
         id: 'prod_1',
-        name: '高機能コーヒードリッパー',
-        price: 3500, // 円単位
-        description: '誰でも簡単にプロの味を再現できる、最新技術を詰め込んだドリッパーです。',
-        image: 'https://images.unsplash.com/photo-1511920183353-3c712b79c278?q=80&w=1974&auto=format&fit=crop'
+        name: 'どこでもいっしょ トロ型スーパーDXクッション',
+        price: 77777, // 円単位
+        description: 'トロと一緒にゴロゴロできるにゃよ。',
+        image: 'https://auctions.c.yimg.jp/images.auctions.yahoo.co.jp/image/dr000/auc0510/user/07d62384d85995730e8b311ce39b86e218a6d44a24c13ed68569a0235265c74d/i-img1200x1200-17285735876204nsylhf43675.jpg'
     },
     {
         id: 'prod_2',
-        name: 'プレミアムコーヒー豆 (200g)',
-        price: 2200, // 円単位
-        description: 'フルーティーな香りとすっきりとした後味が特徴の、最高品質のアラビカ種です。',
-        image: 'https://images.unsplash.com/photo-1559028006-44a3a9943364?q=80&w=2070&auto=format&fit=crop'
+        name: 'どこでもいっしょクロTシャツ',
+        price: 3777, // 円単位
+        description: 'どこでもクロと一緒にゃよ。',
+        image: 'https://www.cospa.com/images/items/pc/107228.jpg'
     }
 ];
 
