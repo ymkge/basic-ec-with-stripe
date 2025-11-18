@@ -20,6 +20,13 @@ const products = [
         price: 3777, // 円単位
         description: 'どこでもクロと一緒にゃよ。',
         image: 'https://www.cospa.com/images/items/pc/107228.jpg'
+    },
+    {
+        id: 'prod_3',
+        name: 'ピーエル フィギアマスコット',
+        price: 3777, // 円単位
+        description: 'まちおぼうけ中だワン',
+        image: 'https://m.media-amazon.com/images/I/51JOe+ClUpL._AC_UF894,1000_QL80_.jpg'
     }
 ];
 
