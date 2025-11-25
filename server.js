@@ -40,32 +40,34 @@ app.get('/api/products', (req, res) => {
 
 // Stripe Checkoutセッションを作成するAPI
 app.post('/create-checkout-session', async (req, res) => {
-    const { productId } = req.body;
+    const { cart } = req.body;
 
-    const product = products.find(p => p.id === productId);
-
-    if (!product) {
-        return res.status(404).json({ error: 'Product not found' });
+    if (!cart || !Array.isArray(cart) || cart.length === 0) {
+        return res.status(400).json({ error: 'Cart is empty or invalid' });
     }
 
     try {
+        const line_items = cart.map(item => {
+            const product = products.find(p => p.id === item.id);
+            if (!product) {
+                throw new Error(`Product with id ${item.id} not found`);
+            }
+            return {
+                price_data: {
+                    currency: 'jpy',
+                    product_data: {
+                        name: product.name,
+                        images: [product.image],
+                    },
+                    unit_amount: product.price,
+                },
+                quantity: item.quantity,
+            };
+        });
+
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
-            line_items: [
-                {
-                    price_data: {
-                        currency: 'jpy',
-                        product_data: {
-                            name: product.name,
-                            images: [product.image],
-                        },
-                        // 価格はセント単位で渡す (例: 3500円 -> 3500)
-                        // Stripe APIの最新の挙動では、JPYの場合、セントではなく円の値をそのまま渡します。
-                        unit_amount: product.price,
-                    },
-                    quantity: 1,
-                },
-            ],
+            line_items: line_items,
             mode: 'payment',
             success_url: `http://localhost:3000/success.html`,
             cancel_url: `http://localhost:3000/cancel.html`,

@@ -9,6 +9,7 @@
 <body>
     <header>
         <h1>My Hobby Store</h1>
+        <a href="/cart.html" class="cart-link">カートを見る (<span id="cart-count">0</span>)</a>
     </header>
     <main id="product-list">
         <!-- 商品はJavaScriptによってここに挿入されます -->
@@ -20,6 +21,14 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const productList = document.getElementById('product-list');
+            const cartCount = document.getElementById('cart-count');
+
+            // カートの初期化と表示更新
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const updateCartCount = () => {
+                cartCount.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+            };
+            updateCartCount();
 
             // サーバーから商品情報を取得
             fetch('/api/products')
@@ -34,7 +43,7 @@
                                 <h2>${product.name}</h2>
                                 <p class="description">${product.description}</p>
                                 <p class="price">¥${product.price.toLocaleString()}</p>
-                                <button class="buy-button" data-product-id="${product.id}">購入する</button>
+                                <button class="add-to-cart-button" data-product-id="${product.id}">カートに入れる</button>
                             </div>
                         `;
                         productList.appendChild(productCard);
@@ -45,40 +54,34 @@
                     productList.innerHTML = '<p>商品の読み込みに失敗しました。</p>';
                 });
 
-            // 購入ボタンのクリックイベント
-            productList.addEventListener('click', async (event) => {
-                if (event.target.classList.contains('buy-button')) {
+            // 「カートに入れる」ボタンのクリックイベント
+            productList.addEventListener('click', (event) => {
+                if (event.target.classList.contains('add-to-cart-button')) {
                     const button = event.target;
                     const productId = button.dataset.productId;
                     
-                    // ボタンをローディング状態にする
-                    button.disabled = true;
-                    button.textContent = '処理中...';
+                    // カート内の既存商品を探す
+                    const existingItem = cart.find(item => item.id === productId);
 
-                    try {
-                        const response = await fetch('/create-checkout-session', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ productId: productId }),
-                        });
-
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-
-                        const session = await response.json();
-                        // Stripeの決済ページにリダイレクト
-                        window.location.href = session.url;
-
-                    } catch (error) {
-                        console.error('Error creating checkout session:', error);
-                        alert('決済ページの作成に失敗しました。');
-                        // エラーが発生したらボタンを元に戻す
-                        button.disabled = false;
-                        button.textContent = '購入する';
+                    if (existingItem) {
+                        // 商品が既にカートにあれば数量を増やす
+                        existingItem.quantity++;
+                    } else {
+                        // なければ新しい商品として追加
+                        cart.push({ id: productId, quantity: 1 });
                     }
+
+                    // localStorageにカート情報を保存
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    
+                    // カートの表示を更新
+                    updateCartCount();
+
+                    // ボタンのフィードバック
+                    button.textContent = '追加しました！';
+                    setTimeout(() => {
+                        button.textContent = 'カートに入れる';
+                    }, 1000);
                 }
             });
         });
