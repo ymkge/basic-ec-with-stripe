@@ -137,7 +137,11 @@
                         body: JSON.stringify({ cart: cart }),
                     });
 
-                    if (!response.ok) throw new Error('Checkout session creation failed');
+                    if (!response.ok) {
+                        // サーバーからエラーレスポンスが返された場合
+                        const errorData = await response.json();
+                        throw errorData; // catchブロックにエラー情報を渡す
+                    }
 
                     const session = await response.json();
                     
@@ -147,7 +151,13 @@
                     window.location.href = session.url;
                 } catch (error) {
                     console.error('Error during checkout:', error);
-                    alert('決済処理中にエラーが発生しました。');
+                    if (error.productName) {
+                        // 在庫不足エラーの場合
+                        alert(`申し訳ありません。「${error.productName}」は在庫が不足しています。(残り: ${error.stock}点)`);
+                    } else {
+                        // その他のエラー
+                        alert('決済処理中にエラーが発生しました。');
+                    }
                     checkoutButton.disabled = false;
                     checkoutButton.textContent = '決済に進む';
                 }
